@@ -1,0 +1,61 @@
+//@version=6
+strategy("Ichimoku Cloud + BBTrend Filter Strategy", overlay=true, margin_long=100, margin_short=100)
+
+
+// Параметры Ишимоку
+conversionPeriods = input(9, "Conversion Line Length")
+basePeriods = input(26, "Base Line Length")
+laggingSpan2Periods = input(52, "Lagging Span 2 Length")
+displacement = input(26, "Displacement")
+
+donchian(len) => math.avg(ta.lowest(len), ta.highest(len))
+
+// Расчет компонентов Ишимоку
+conversionLine = donchian(conversionPeriods)
+baseLine = donchian(basePeriods)
+leadLine1 = math.avg(conversionLine, baseLine)
+leadLine2 = donchian(laggingSpan2Periods)
+
+// Параметры BBTrend
+bbTrendLength = input(20, "BBTrend Length")
+bbTrendSrc = close
+bbTrend = ta.ema(bbTrendSrc, bbTrendLength)
+
+// Условие для BBTrend (рост последних 3 значений)
+bbTrendUp = bbTrend[1] > bbTrend[2] and bbTrend[2] > bbTrend[3] and bbTrend[3] > bbTrend[4]
+
+// Условия для входа в лонг
+priceAboveCloud = close > leadLine1 and close > leadLine2
+conversionAboveBase = conversionLine > baseLine
+cloudBullish = leadLine1 > leadLine2
+
+enterLong = bbTrendUp and priceAboveCloud and conversionAboveBase and cloudBullish
+
+// Условия для входа в шорт
+priceBelowCloud = close < leadLine1 and close < leadLine2
+conversionBelowBase = conversionLine < baseLine
+cloudBearish = leadLine1 < leadLine2
+
+enterShort = bbTrendUp and priceBelowCloud and conversionBelowBase and cloudBearish
+
+// Выход из позиций
+exitLong = conversionLine < baseLine
+exitShort = conversionLine > baseLine
+
+// Исполнение ордеров
+if enterLong
+    strategy.entry("Long", strategy.long)
+if exitLong
+    strategy.close("Long")
+if enterShort
+    //strategy.entry("Short", strategy.short)
+    strategy.close_all('alarm')
+if exitShort
+    strategy.close("Short")
+
+// Отображение на графике
+plot(conversionLine, color=color.blue, title="Conversion Line")
+plot(baseLine, color=color.red, title="Base Line")
+plot(leadLine1, color=color.green, title="Lead 1")
+plot(leadLine2, color=color.red, title="Lead 2")
+plot(bbTrend, color=color.orange, title="BBTrend")
