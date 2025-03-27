@@ -1,5 +1,5 @@
 //@version=6
-strategy("Ichimoku Cloud + BBTrend Filter Strategy", overlay=true, margin_long=100, margin_short=100)
+strategy("ARAKAWABRIDGE", overlay=true, margin_long=100, margin_short=100)
 
 
 // Параметры Ишимоку
